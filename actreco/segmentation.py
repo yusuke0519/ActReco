@@ -2,13 +2,14 @@
 import numpy as np
 
 
-def mval_segmentation(data, n_sample, l_sample, method=None, interval=None, buffsize=None, index_sq=None):
+def mval_segmentation(data, l_sample, method=None, n_sample=None, interval=None, buffsize=None, index_sq=None):
     """ segmentate multivariate sequences
+
     Input:
-        data: multivariate data (n_sample, n_feature) ndarray
-        n_sample: the number of required sample
+        data: multivariate time-series data (n_sample, n_feature) ndarray
         l_sample: the lenght of required sample
         method: how to decide the sampling point
+        n_sample: (optional) it is required to segment without 'sliding' manner
         interval (optional): it is required to segment with 'sliding' manner
         buffsize (optional): it is required to segment with 'max' manner
         index_sq (optional): it is requreid to segment with 'max' manner
@@ -30,7 +31,7 @@ def mval_segmentation(data, n_sample, l_sample, method=None, interval=None, buff
             index_sq, buffsize=buffsize)
     elif method is 'sliding':
         sample_start = sliding_sampling(
-            np.arange(n_total_sample), n_sample, l_sample, interval=interval)
+            np.arange(n_total_sample), l_sample, interval=interval)
         n_sample = len(sample_start)
         # print("Create %d sample" % (n_sample))
     else:
@@ -56,7 +57,7 @@ def max_point_sampling(whole_choice_pos, n_sample, l_sample, index_sq, buffsize=
     return start_sample
 
 
-def sliding_sampling(whole_choice_pos, n_sample, l_sample, interval=None):
+def sliding_sampling(whole_choice_pos, l_sample, interval=None):
     if interval is None:
         interval = l_sample
     n_total_sample = len(whole_choice_pos)
