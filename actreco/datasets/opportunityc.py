@@ -80,11 +80,11 @@ def load_file_of(userID='S1', target_key="Gestures", adl_id="ADL1"):
     sensor_values = data_df.values[:, :-1]
     activity_labels = data_df.values[:, -1]
     lname_to_id = label_dict(target_key)
-    Y = np.zeros((len(data_df), len(lname_to_id)))
+    label_ids = np.zeros((len(data_df), len(lname_to_id)))
     for k, v in lname_to_id.items():
-        Y[:, v] = activity_labels == k
+        label_ids[:, v] = activity_labels == k
 
-    return timestamps, sensor_values, Y
+    return timestamps, sensor_values, label_ids
 
 
 class Opportunity(object):
@@ -112,7 +112,4 @@ class Opportunity(object):
 if __name__ == "__main__":
     if not os.path.exists(out_dir):
         download()
-    # timestamps, sensor_values, activity_labels = load_file_of()
-    # data_dict = segmentation(timestamps, sensor_values, activity_labels, l_sample=30, interval=15)
-
     dataset = Opportunity(userID='S1,S2,S3,S4', target_key='Gestures', adl_id='ADL1,ADL2,ADL3,ADL4,ADL5,Drill')
