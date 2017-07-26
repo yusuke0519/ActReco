@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import StandardScaler
 
-from actreco.segmentation import mval_segmentation
 
 CONFIG = {}
 CONFIG['url'] = 'http://www.opportunity-project.eu/system/files/Challenge/OpportunityChallengeLabeled.zip'
@@ -80,48 +79,12 @@ def load_file_of(userID='S1', target_key="Gestures", adl_id="ADL1"):
     timestamps = timestamps.reshape(len(timestamps), 1)
     sensor_values = data_df.values[:, :-1]
     activity_labels = data_df.values[:, -1]
+    lname_to_id = label_dict(target_key)
+    Y = np.zeros((len(data_df), len(lname_to_id)))
+    for k, v in lname_to_id.items():
+        Y[:, v] = activity_labels == k
 
-    return timestamps, sensor_values, activity_labels
-
-
-def segmentation(t, X, y, l_sample, interval, target_key="Gestures", preprocessing=True):
-    """ Segmentating the pd.Dataframe
-
-    :param data_df:
-    :return: segmented time series
-    """
-    """
-    :param data_df:
-    :return:
-    """
-    # time
-    t = mval_segmentation(
-        t, l_sample, method='sliding', interval=interval
-    )
-    t = t.swapaxes(0, 1)
-
-    # X
-    if preprocessing:
-        X = StandardScaler().fit_transform(X)  # Preprocessing
-    X = mval_segmentation(
-        X, l_sample, method='sliding', interval=interval
-    )
-    X_shape = X.shape
-    X = X.reshape((1, X_shape[0], X_shape[1], X_shape[2])).swapaxes(0, 2)
-
-    # y
-    y = y.reshape((len(y), 1))
-    y = mval_segmentation(
-        y, l_sample, method='sliding', interval=interval
-    )
-
-    labels = np.ones((X_shape[1], len(label_dict(target_key))+1))
-    for k, v in iteritems(label_dict(target_key)):
-        labels[:, v] = (y == k).sum(axis=2)
-    y = labels.argmax(axis=1)
-    y = y.reshape(len(y), -1)
-    return t, X, y
-    # return {'t': t, 'X': X, 'y': y}
+    return timestamps, sensor_values, Y
 
 
 class Opportunity(object):
@@ -133,31 +96,8 @@ class Opportunity(object):
         for param in self._paramiter(self.params):
             self.rawdata[str(param)] = load_file_of(**param)
 
-    def convert2MLtype(self, l_sample, interval, dim_ordering='bc01'):
-        """ convert the raw time-series to ML data type
-
-        :param l_sample: the length of each segment
-        :param interval: the interval between each segment
-        :return:
-        """
-
-        ts, Xs, ys, userIDs = [], [], [], []
-        for param in self._paramiter(self.params):
-            timestamps, sensor_values, activity_labels = self.rawdata[str(param)]
-            t, X, y = segmentation(timestamps, sensor_values, activity_labels, l_sample, interval)
-            ts.append(t)
-            Xs.append(X)
-            ys.append(y)
-            userID_array = np.chararray(y.shape)
-            userID_array.fill(param['userID'])
-            userIDs.append(userID_array)
-        ts = np.concatenate(ts)
-        Xs = np.concatenate(Xs)
-        ys = np.concatenate(ys)
-        userIDs = np.concatenate(userIDs)
-
-
-        return ts, Xs, ys, userIDs
+    def data_list(self):
+        return self.rawdata.values()
 
     def _paramiter(self, params):
         _params = []
@@ -172,9 +112,7 @@ class Opportunity(object):
 if __name__ == "__main__":
     if not os.path.exists(out_dir):
         download()
-    timestamps, sensor_values, activity_labels = load_file_of()
-    data_dict = segmentation(timestamps, sensor_values, activity_labels, l_sample=30, interval=15)
+    # timestamps, sensor_values, activity_labels = load_file_of()
+    # data_dict = segmentation(timestamps, sensor_values, activity_labels, l_sample=30, interval=15)
 
     dataset = Opportunity(userID='S1,S2,S3,S4', target_key='Gestures', adl_id='ADL1,ADL2,ADL3,ADL4,ADL5,Drill')
-    t, X, y, userIDs = dataset.convert2MLtype(l_sample=30, interval=15)
-    print(X.shape, y.shape)
