@@ -1,0 +1,24 @@
+
+
+*/dataset/
+*.swp
+*~
+*.pkl
+*.pyc
+*/mnt*
+*.csv
+*.pkl
+*.pdf
+*DS_Store
+
+*.jpg
+*.png
+*.gif
+*.mp4s
+
+# ipython notebook
+*.ipynb_checkpoints
+
+# data
+data/luigi/*
+result/
