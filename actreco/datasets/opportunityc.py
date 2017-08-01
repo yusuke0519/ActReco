@@ -78,6 +78,7 @@ def load_file_of(userID='S1', target_key="Gestures", adl_id="ADL1"):
     timestamps = data_df.index.values
     timestamps = timestamps.reshape(len(timestamps), 1)
     sensor_values = data_df.values[:, :-1]
+    sensor_values = StandardScaler().fit_transform(sensor_values)
     activity_labels = data_df.values[:, -1]
     lname_to_id = label_dict(target_key)
     label_ids = np.zeros((len(data_df), len(lname_to_id)))
@@ -90,14 +91,23 @@ def load_file_of(userID='S1', target_key="Gestures", adl_id="ADL1"):
 class Opportunity(object):
     __name__ = 'opportunity'
 
-    def __init__(self, **kwargs):
+    def __init__(self, userID='S1,S2,S3,S4', target_key='Gestures', adl_id='ADL1,ADL2,ADL3,ADL4,ADL5,Drill'):
         self.rawdata = {}
-        self.params = kwargs
+        self.params = {
+            "userID": userID,
+            "target_key": target_key,
+            "adl_id": adl_id
+        }
         for param in self._paramiter(self.params):
             self.rawdata[str(param)] = load_file_of(**param)
 
-    def data_list(self):
-        return self.rawdata.values()
+        self.nb_modal = 113
+        if target_key == 'Gestures':
+            self.nb_class = 18
+        elif target_key == 'Locomotion':
+            self.nb_class = 5
+        else:
+            self.nb_class = None
 
     def _paramiter(self, params):
         _params = []
@@ -107,6 +117,9 @@ class Opportunity(object):
 
         for param_variation in itertools.product(*param_variations):
             yield dict(zip(param_names, param_variation))
+
+    def data_list(self):
+        return self.rawdata.values()
 
 
 if __name__ == "__main__":
