@@ -117,9 +117,12 @@ class Opportunity(object):
 
         for param_variation in itertools.product(*param_variations):
             yield dict(zip(param_names, param_variation))
+    
+    def get(self, name):
+        idx = {'T': 0, 't': 0, 'X': 1, 'x': 1, 'Y': 2, 'y': 2}.get(name)
+        assert idx is not None, "argument name must be {'T', 't', 'X', 'x', 'Y', 'y'}. Given {}".format(name)
 
-    def data_list(self):
-        return self.rawdata.values()
+        return [x[idx] for x in list(self.rawdata.values())]
 
 
 if __name__ == "__main__":
