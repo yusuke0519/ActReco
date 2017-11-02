@@ -30,10 +30,16 @@ def sliding(x, l_sample, interval):
         next_segment = get_segment(x, start, stop)
 
 
-def clip_segment_between(x, start, l_sample):
+def clip_segment_between(x, start, l_sample, interval=None, nb_timestep=1):
     for t in start:
-        yield get_segment(x, t, t+l_sample)
-            
+        segment = [None] * nb_timestep
+        if nb_timestep == 1:
+            segment[0] = get_segment(x, t, t+l_sample)
+        else:
+            for i in range(nb_timestep):
+                segment[i] = get_segment(x, t+(interval*i), t+l_sample+(interval*i))
+                
+        yield np.stack(segment)
             
 def clip_time_between(x, start, stop):
     assert len(start) == len(stop), "start and stop must have same length"
